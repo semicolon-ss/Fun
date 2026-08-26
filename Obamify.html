@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Obamify</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Noto+Serif+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #ece2c8;
+    --paper-dark: #ddd0ab;
+    --ink: #232323;
+    --ink-soft: #4a4238;
+    --shu: #a8341f;      /* vermillion seal red */
+    --shu-dark: #7c2415;
+    --indigo: #223448;   /* aizome indigo */
+    --gold: #a3812c;
+  }
+  *{box-sizing:border-box;}
+  html,body{ margin:0; padding:0; }
+  body{
+    font-family: 'Noto Serif JP', 'Shippori Mincho', serif;
+    color: var(--ink);
+    min-height:100vh;
+    padding: 34px 16px 70px;
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(0,0,0,0.03) 0, transparent 60%),
+      radial-gradient(circle at 80% 90%, rgba(0,0,0,0.03) 0, transparent 60%),
+      repeating-linear-gradient(135deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 2px, transparent 2px, transparent 26px);
+  }
+
+  h1, h2 {
+    font-family: 'Shippori Mincho', serif;
+    letter-spacing: 0.04em;
+  }
+
+  h1{
+    text-align:center;
+    margin: 0 0 4px;
+    font-size: 2.1rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  h1 .kanji{
+    display:block;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--shu);
+    letter-spacing: 0.5em;
+    margin-bottom: 6px;
+  }
+  .subtitle{
+    text-align:center;
+    max-width: 640px;
+    margin: 0 auto 30px;
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+    line-height:1.8;
+  }
+
+  .layout{
+    max-width: 1100px;
+    margin: 0 auto;
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+  }
+  @media (max-width: 800px){
+    .layout{ grid-template-columns: 1fr; }
+  }
+
+  .card{
+    background: var(--paper-dark);
+    border-radius: 0;
+    padding: 20px;
+    border: 1px solid var(--ink);
+    box-shadow: 5px 5px 0 rgba(35,35,35,0.18);
+    position: relative;
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    top:6px; left:6px; right:6px; bottom:6px;
+    border: 1px solid rgba(35,35,35,0.35);
+    pointer-events:none;
+  }
+  .card h2{
+    margin: 0 0 4px;
+    font-size: 1.15rem;
+    color: var(--indigo);
+  }
+  .card p.hint{
+    margin: 0 0 12px;
+    font-size: 0.82rem;
+    color:#6b6250;
+  }
+
+  .dropzone{
+    border: 1px dashed var(--ink);
+    border-radius: 0;
+    height: 220px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    overflow:hidden;
+    background: var(--paper);
+    cursor:pointer;
+    transition: background .15s ease;
+  }
+  .dropzone:hover{ background:#e2d5b3; }
+  .dropzone.hasimg{ border-style: solid; }
+  .dropzone img{
+    width:100%; height:100%; object-fit:cover;
+    filter: sepia(0.12);
+  }
+  .dropzone .placeholder{
+    text-align:center;
+    color: var(--ink-soft);
+    font-size:0.88rem;
+    padding: 0 20px;
+    line-height:1.6;
+  }
+  .dropzone input[type=file]{
+    position:absolute; inset:0; opacity:0; cursor:pointer;
+  }
+
+  .controls{
+    max-width: 1100px;
+    margin: 22px auto 0;
+    background: var(--paper-dark);
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    padding: 20px 24px;
+    box-shadow: 5px 5px 0 rgba(35,35,35,0.18);
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap: 24px;
+  }
+  .slider-block{ flex:1; min-width:220px; }
+  .slider-block label{
+    display:block;
+    font-size:0.85rem;
+    margin-bottom: 6px;
+    color: var(--ink-soft);
+  }
+  input[type=range]{
+    width:100%;
+    accent-color: var(--shu);
+  }
+  .slider-block .note{
+    font-size: 0.72rem;
+    color: #8a7c63;
+    margin-top: 4px;
+  }
+
+  .btn-row{
+    display:flex;
+    gap: 12px;
+    flex-wrap:wrap;
+  }
+
+  button{
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    padding: 12px 26px;
+    font-family: 'Shippori Mincho', serif;
+    font-size: 0.9rem;
+    font-weight:600;
+    letter-spacing: 0.06em;
+    cursor:pointer;
+    background: var(--shu);
+    color: var(--paper);
+    box-shadow: 3px 3px 0 rgba(35,35,35,0.4);
+    transition: transform .1s ease, box-shadow .1s ease;
+    white-space: nowrap;
+  }
+  button:hover{
+    transform: translate(-1px,-1px);
+    box-shadow: 4px 4px 0 rgba(35,35,35,0.4);
+  }
+  button:active{
+    transform: translate(1px,1px);
+    box-shadow: 1px 1px 0 rgba(35,35,35,0.4);
+  }
+  button:disabled{
+    opacity:0.45; cursor:not-allowed; transform:none;
+    box-shadow: 3px 3px 0 rgba(35,35,35,0.4);
+  }
+  button.secondary{
+    background: var(--paper);
+    color: var(--indigo);
+    border: 1px solid var(--indigo);
+  }
+  button.tertiary{
+    background: var(--paper);
+    color: var(--shu-dark);
+    border: 1px solid var(--shu-dark);
+  }
+
+  .result-wrap{
+    max-width: 1100px;
+    margin: 26px auto 0;
+    background: var(--paper-dark);
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    padding: 24px;
+    box-shadow: 5px 5px 0 rgba(35,35,35,0.18);
+    text-align:center;
+  }
+  .result-wrap h2{
+    margin-top:0;
+    color: var(--indigo);
+  }
+  #outputCanvas{
+    max-width: 100%;
+    width: 460px;
+    height: 460px;
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    background: #1a1a1a;
+    box-shadow: 5px 5px 0 rgba(35,35,35,0.25);
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+  }
+  .status{
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    margin-top: 12px;
+    min-height: 1.2em;
+    letter-spacing: 0.03em;
+  }
+  .actions{
+    display:flex;
+    gap: 12px;
+    justify-content:center;
+    margin-top: 18px;
+    flex-wrap:wrap;
+  }
+
+  .stamp{
+    position:absolute;
+    top: -10px;
+    right: -10px;
+    width: 42px;
+    height: 42px;
+    background: var(--shu);
+    color: var(--paper);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size: 0.7rem;
+    font-family: 'Shippori Mincho', serif;
+    border: 1px solid var(--ink);
+    box-shadow: 2px 2px 0 rgba(35,35,35,0.3);
+  }
+</style>
+</head>
+<body>
+
+  <h1><span class="kanji"></span>Obamify - The Picture Transformer</h1>
+  <p class="subtitle">
+    Choose a <b>source photo</b> and a <b>target photo</b> (drop in your own Obama picture, or anything else).
+    And Watch it Transform!
+  </p>
+
+  <div class="layout">
+    <div class="card">
+      <span class="stamp">K</span>
+      <h2>一. Source Image</h2>
+      <p class="hint">The photograph whose pixels will travel.</p>
+      <div class="dropzone" id="dropSource">
+        <div class="placeholder" id="placeholderSource">Click or drop an image<br>(this one will be rearranged)</div>
+        <input type="file" id="fileSource" accept="image/*">
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="stamp"></span>
+      <h2>二. Target Image</h2>
+      <p class="hint">The silhouette the pixels will travel toward — e.g. drop in a photo of Obama here.</p>
+      <div class="dropzone" id="dropTarget">
+        <div class="placeholder" id="placeholderTarget">Click or drop an image<br>(this defines the final shape)</div>
+        <input type="file" id="fileTarget" accept="image/*">
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="slider-block">
+      <label id="resLabel">Detail level (grid resolution): 140 × 140</label>
+      <input type="range" id="resSlider" min="5" max="650" step="5" value="140">
+      <div class="note">Range: 5×5 (abstract) to 650×650 (fine detail, slower to animate)</div>
+    </div>
+    <div class="slider-block">
+      <label id="speedLabel">Journey duration: 3.0s</label>
+      <input type="range" id="speedSlider" min="5" max="1200" step="5" value="30">
+      <div class="note">Range: 0.5s to 2 minutes</div>
+    </div>
+    <div class="btn-row">
+      <button id="processBtn" disabled> — Begin the Forming</button>
+      <button id="reverseBtn" class="tertiary" disabled> — Reverse</button>
+      <button id="downloadBtn" class="secondary" disabled>⬇ Download Result</button>
+    </div>
+  </div>
+
+  <div class="result-wrap">
+    <h2>Result</h2>
+    <canvas id="outputCanvas" width="140" height="140"></canvas>
+    <div class="status" id="status">Upload a source and target image to begin.</div>
+  </div>
+
+<script>
+(function(){
+  const fileSource = document.getElementById('fileSource');
+  const fileTarget = document.getElementById('fileTarget');
+  const dropSource = document.getElementById('dropSource');
+  const dropTarget = document.getElementById('dropTarget');
+  const placeholderSource = document.getElementById('placeholderSource');
+  const placeholderTarget = document.getElementById('placeholderTarget');
+  const processBtn = document.getElementById('processBtn');
+  const reverseBtn = document.getElementById('reverseBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const resSlider = document.getElementById('resSlider');
+  const resLabel = document.getElementById('resLabel');
+  const speedSlider = document.getElementById('speedSlider');
+  const speedLabel = document.getElementById('speedLabel');
+  const outputCanvas = document.getElementById('outputCanvas');
+  const statusEl = document.getElementById('status');
+
+  let sourceImg = null;
+  let targetImg = null;
+  let animHandle = null;
+  let lastRun = null; // cached arrays from the most recent forward movement, used for reversing
+
+  function loadFileToImage(file, imgSetter, dropzone, placeholder){
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        imgSetter(img);
+        placeholder.style.display = 'none';
+        let preview = dropzone.querySelector('img.preview');
+        if(!preview){
+          preview = document.createElement('img');
+          preview.className = 'preview';
+          dropzone.insertBefore(preview, dropzone.firstChild);
+        }
+        preview.src = e.target.result;
+        dropzone.classList.add('hasimg');
+        checkReady();
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  fileSource.addEventListener('change', () => {
+    loadFileToImage(fileSource.files[0], (img)=>{sourceImg = img; lastRun = null; reverseBtn.disabled = true;}, dropSource, placeholderSource);
+  });
+  fileTarget.addEventListener('change', () => {
+    loadFileToImage(fileTarget.files[0], (img)=>{targetImg = img; lastRun = null; reverseBtn.disabled = true;}, dropTarget, placeholderTarget);
+  });
+
+  [[dropSource, fileSource],[dropTarget, fileTarget]].forEach(([zone, input]) => {
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); });
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      if(e.dataTransfer.files && e.dataTransfer.files[0]){
+        input.files = e.dataTransfer.files;
+        input.dispatchEvent(new Event('change'));
+      }
+    });
+  });
+
+  function checkReady(){
+    processBtn.disabled = !(sourceImg && targetImg);
+  }
+
+  resSlider.addEventListener('input', () => {
+    resLabel.textContent = `Detail level (grid resolution): ${resSlider.value} × ${resSlider.value}`;
+  });
+  speedSlider.addEventListener('input', () => {
+    const totalSeconds = resSliderSecondsFromValue(speedSlider.value);
+    speedLabel.textContent = `Journey duration: ${totalSeconds}`;
+  });
+  function resSliderSecondsFromValue(v){
+    const secs = v / 10;
+    if(secs >= 60){
+      const m = Math.floor(secs/60);
+      const s = (secs - m*60).toFixed(1);
+      return `${m}m ${s}s`;
+    }
+    return `${secs.toFixed(1)}s`;
+  }
+
+  function drawCover(ctx, img, w, h){
+    const imgRatio = img.width / img.height;
+    const boxRatio = w / h;
+    let sx, sy, sw, sh;
+    if(imgRatio > boxRatio){
+      sh = img.height;
+      sw = sh * boxRatio;
+      sx = (img.width - sw) / 2;
+      sy = 0;
+    } else {
+      sw = img.width;
+      sh = sw / boxRatio;
+      sx = 0;
+      sy = (img.height - sh) / 2;
+    }
+    ctx.clearRect(0,0,w,h);
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, w, h);
+  }
+
+  function luminance(data, i){
+    const o = i*4;
+    return 0.299*data[o] + 0.587*data[o+1] + 0.114*data[o+2];
+  }
+
+  function sortedIndicesByLuminance(data, n){
+    const idx = new Array(n);
+    for(let i=0;i<n;i++) idx[i] = i;
+    const lum = new Float32Array(n);
+    for(let i=0;i<n;i++) lum[i] = luminance(data, i);
+    idx.sort((a,b) => lum[a] - lum[b]);
+    return idx;
+  }
+
+  function easeInOutCubic(t){
+    return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
+  }
+
+  processBtn.addEventListener('click', () => {
+    if(!sourceImg || !targetImg) return;
+    if(animHandle) cancelAnimationFrame(animHandle);
+    statusEl.textContent = 'Grinding the pigments…';
+    processBtn.disabled = true;
+    reverseBtn.disabled = true;
+    downloadBtn.disabled = true;
+    setTimeout(() => computeMapping(true), 20);
+  });
+
+  reverseBtn.addEventListener('click', () => {
+    if(!lastRun) return;
+    if(animHandle) cancelAnimationFrame(animHandle);
+    processBtn.disabled = true;
+    reverseBtn.disabled = true;
+    downloadBtn.disabled = true;
+    animate(lastRun, false);
+  });
+
+  function computeMapping(runForward){
+    const N = parseInt(resSlider.value, 10);
+    const W = N, H = N;
+
+    const work = document.createElement('canvas');
+    work.width = W; work.height = H;
+    const wctx = work.getContext('2d', { willReadFrequently: true });
+
+    drawCover(wctx, sourceImg, W, H);
+    const sourceCopy = new Uint8ClampedArray(wctx.getImageData(0,0,W,H).data);
+
+    drawCover(wctx, targetImg, W, H);
+    const targetData = wctx.getImageData(0,0,W,H).data;
+
+    const totalPixels = W*H;
+    const sourceOrder = sortedIndicesByLuminance(sourceCopy, totalPixels);
+    const targetOrder = sortedIndicesByLuminance(targetData, totalPixels);
+
+    const destFor = new Int32Array(totalPixels);
+    for(let r=0; r<totalPixels; r++){
+      destFor[sourceOrder[r]] = targetOrder[r];
+    }
+
+    const startX = new Float32Array(totalPixels);
+    const startY = new Float32Array(totalPixels);
+    const endX = new Float32Array(totalPixels);
+    const endY = new Float32Array(totalPixels);
+    for(let i=0;i<totalPixels;i++){
+      const sx = i % W, sy = (i - sx)/W;
+      const di = destFor[i];
+      const dx = di % W, dy = (di - dx)/W;
+      startX[i] = sx; startY[i] = sy;
+      endX[i] = dx; endY[i] = dy;
+    }
+
+    outputCanvas.width = W;
+    outputCanvas.height = H;
+
+    const run = { W, H, totalPixels, sourceCopy, destFor, startX, startY, endX, endY };
+    lastRun = run;
+    if(runForward) animate(run, true);
+  }
+
+  function animate(run, forward){
+    const { W, H, totalPixels, sourceCopy, destFor, startX, startY, endX, endY } = run;
+    const durationMs = parseInt(speedSlider.value, 10) * 100; // slider units of 0.1s
+    const octx = outputCanvas.getContext('2d');
+
+    const bgBuffer = new Uint8ClampedArray(totalPixels*4);
+    for(let p=0;p<totalPixels;p++){
+      bgBuffer[p*4]   = 26;
+      bgBuffer[p*4+1] = 26;
+      bgBuffer[p*4+2] = 26;
+      bgBuffer[p*4+3] = 255;
+    }
+
+    const startTime = performance.now();
+
+    function frame(now){
+      const elapsed = now - startTime;
+      const rawP = Math.min(1, elapsed / durationMs);
+      const eased = easeInOutCubic(rawP);
+      // forward travels start -> end; reverse travels end -> start
+      const factor = forward ? eased : (1 - eased);
+
+      const buffer = new Uint8ClampedArray(bgBuffer);
+      for(let i=0;i<totalPixels;i++){
+        const cx = startX[i] + (endX[i]-startX[i]) * factor;
+        const cy = startY[i] + (endY[i]-startY[i]) * factor;
+        let ix = Math.round(cx);
+        let iy = Math.round(cy);
+        if(ix < 0) ix = 0; else if(ix >= W) ix = W-1;
+        if(iy < 0) iy = 0; else if(iy >= H) iy = H-1;
+        const destOff = (iy*W + ix) * 4;
+        const srcOff = i*4;
+        buffer[destOff]   = sourceCopy[srcOff];
+        buffer[destOff+1] = sourceCopy[srcOff+1];
+        buffer[destOff+2] = sourceCopy[srcOff+2];
+        buffer[destOff+3] = 255;
+      }
+
+      octx.putImageData(new ImageData(buffer, W, H), 0, 0);
+      const label = forward ? 'The pixels travel outward…' : 'The pixels go Back…';
+      statusEl.textContent = `${label} ${Math.round(rawP*100)}%`;
+
+      if(rawP < 1){
+        animHandle = requestAnimationFrame(frame);
+      } else {
+        const finalBuffer = new Uint8ClampedArray(totalPixels*4);
+        if(forward){
+          for(let i=0;i<totalPixels;i++){
+            const destOff = destFor[i]*4;
+            const srcOff = i*4;
+            finalBuffer[destOff]   = sourceCopy[srcOff];
+            finalBuffer[destOff+1] = sourceCopy[srcOff+1];
+            finalBuffer[destOff+2] = sourceCopy[srcOff+2];
+            finalBuffer[destOff+3] = 255;
+          }
+          statusEl.textContent = `Done — ${totalPixels.toLocaleString()} pixels relocated, none added or removed.`;
+        } else {
+          // reverse ends exactly back at the untouched original source layout
+          for(let i=0;i<totalPixels;i++){
+            const off = i*4;
+            finalBuffer[off]   = sourceCopy[off];
+            finalBuffer[off+1] = sourceCopy[off+1];
+            finalBuffer[off+2] = sourceCopy[off+2];
+            finalBuffer[off+3] = 255;
+          }
+          statusEl.textContent = `Every pixel has returned to its original place.`;
+        }
+        octx.putImageData(new ImageData(finalBuffer, W, H), 0, 0);
+        processBtn.disabled = false;
+        reverseBtn.disabled = false;
+        downloadBtn.disabled = false;
+      }
+    }
+
+    animHandle = requestAnimationFrame(frame);
+  }
+
+  downloadBtn.addEventListener('click', () => {
+    const link = document.createElement('a');
+    link.download = 'pixel-portrait.png';
+    link.href = outputCanvas.toDataURL('image/png');
+    link.click();
+  });
+})();
+</script>
+</body>
+</html>
